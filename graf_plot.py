@@ -9,7 +9,7 @@ import pandas as pd
 #               se tem ou não cabeçalho (acho que fazer igual do excel, que vc seleciona se tem ou n seria legal)
 #            -Aparentemente, para ter uma janela com scroll é preciso tacar o layout todo em uma coluna... mas fica meio estranho a distância do scroll
 #               seria legal melhorar isso (usando um size do column da largura maior q o da window faz isso, mas os elementos ficam não centralizados)
-#
+#            -Seria legal ter como exportar o gráfico gerado como imagem
 
 def create_plot(x=0, y=0, title='', xlabel='', ylabel='', lcolor='Padrão', grid=False):
     if lcolor == 'Azul':
