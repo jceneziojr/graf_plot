@@ -11,6 +11,8 @@ import pandas as pd
 #               seria legal melhorar isso (usando um size do column da largura maior q o da window faz isso, mas os elementos ficam não centralizados)
 #            -Seria legal ter como exportar o gráfico gerado como imagem
 
+list_cores = ('Padrão', 'Azul', 'Verde', 'Vermelho', 'Ciano', 'Magenta', 'Amarelo', 'Preto')
+
 def create_plot(x=0, y=0, title='', xlabel='', ylabel='', lcolor='Padrão', grid=False):
     if lcolor == 'Azul':
         lcolor = 'b'
@@ -45,10 +47,10 @@ def delete_plot(canvas):
 
 column_layout = [
         [sg.Text('Gerador de Plots')],
-        [sg.Text('Link do arquivo: '), sg.Text(), sg.FileBrowse(button_text='Localizar arquivo', tooltip='Seu arquivo deve conter cabeçalho!', key='-file_path-', file_types=(("Text Files", "*.txt"),)), sg.Push(), sg.Button(button_text='Gerar Plot',key='-plot-')], #segundo a documentação, o filetypes TEM que ter aquela virgula após o tipo de arquivo dado
+        [sg.Text('Link do arquivo: '), sg.Text(), sg.FileBrowse(button_text='Localizar arquivo', tooltip=' Seu arquivo deve conter cabeçalho! ', key='-file_path-', file_types=(("Text Files", "*.txt"),)), sg.Push(), sg.Button(button_text='Gerar Plot',key='-plot-')], #segundo a documentação, o filetypes TEM que ter aquela virgula após o tipo de arquivo dado
         [sg.Canvas(size=(100, 100), key='-CANVAS-')],
         [sg.Text('Título do gráfico: '), sg.InputText(key='-title-', size=(30,1)), sg.Text('Label eixo x: '), sg.InputText(key='-xlabel-', size=(20, 1)), sg.Text('Label eixo y: '), sg.InputText(key='-ylabel-', size=(20, 1))], # na documentação do sg, o cara sugere que toda key que retornar string esteja entre hífens
-        [sg.Text('Cor do traçado'), sg.Combo(['Padrão', 'Azul', 'Verde', 'Vermelho', 'Ciano', 'Magenta', 'Amarelo', 'Preto'], key='-color-', default_value='Padrão', readonly=True), sg.Text('Grid'), sg.Checkbox('',key='-grid-')],
+        [sg.Text('Cor do traçado'), sg.Combo(list_cores, key='-color-', default_value='Padrão', readonly=True), sg.Checkbox('Código RGB: #', default=False, key='-color_set-', tooltip=' Ao ativar essa opção, as cores predefinida serão ignoradas! '), sg.InputText(key='-rgbcode-', size=(6, 1)),sg.Text('Grid'), sg.Checkbox('',key='-grid-')],
         [sg.Button(button_text='Aplicar mudanças', key='-apply-')],
         [sg.Exit()]
         ]
@@ -79,11 +81,25 @@ while True: # loop para processar os eventos e pegar os valores dos inputs
             if graf is not None:
                 delete_plot(canvas)
                 arr = pd.read_csv(values['-file_path-'], sep=' ', header=0, names=['eixox', 'eixoy'])
+                if values['-title-']!='':
+                    titulo = values['-title-']
+                if values['-xlabel-']!='':
+                    xlabel = values['-xlabel-']
+                if values['-ylabel-']!='':
+                    ylabel = values['-ylabel-']
                 graf = create_plot(arr.eixox, arr.eixoy, titulo, xlabel, ylabel, values['-color-'], values['-grid-'])
                 canvas = draw_figure(window['-CANVAS-'].TKCanvas, graf)
                 window.refresh()
         except:
-            canvas = draw_figure(window['-CANVAS-'].TKCanvas, graf) #pra ficar visualmente melhor, pois se não colocar, o canvas some
+            if values['-title-']!='':
+                    titulo = values['-title-']
+            if values['-xlabel-']!='':
+                    xlabel = values['-xlabel-']
+            if values['-ylabel-']!='':
+                    ylabel = values['-ylabel-']
+            graf = create_plot(0, 0, titulo, xlabel, ylabel, values['-color-'], values['-grid-'])
+            canvas = draw_figure(window['-CANVAS-'].TKCanvas, graf)
+            window.refresh()
             sg.popup('Caminho Inválido!!!')
 
     elif event == '-apply-':
@@ -93,7 +109,9 @@ while True: # loop para processar os eventos e pegar os valores dos inputs
                 arr = pd.read_csv(values['-file_path-'], sep=' ', header=0, names=['eixox', 'eixoy'])
                 if values['-title-']!='':
                     titulo = values['-title-']
+                if values['-xlabel-']!='':
                     xlabel = values['-xlabel-']
+                if values['-ylabel-']!='':
                     ylabel = values['-ylabel-']
                 graf = create_plot(arr.eixox, arr.eixoy, titulo, xlabel, ylabel, values['-color-'], values['-grid-'])
                 canvas = draw_figure(window['-CANVAS-'].TKCanvas, graf)
@@ -101,7 +119,9 @@ while True: # loop para processar os eventos e pegar os valores dos inputs
         except:
             if values['-title-']!='':
                     titulo = values['-title-']
+            if values['-xlabel-']!='':
                     xlabel = values['-xlabel-']
+            if values['-ylabel-']!='':
                     ylabel = values['-ylabel-']
             graf = create_plot(0, 0, titulo, xlabel, ylabel, values['-color-'], values['-grid-'])
             canvas = draw_figure(window['-CANVAS-'].TKCanvas, graf)
