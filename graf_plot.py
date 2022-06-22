@@ -16,6 +16,7 @@ hex_dict=('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 
 
 def check_hex(code): # checa se o código digitado pode ser usado como cor em hexadecimal
     code = code.casefold()
+    
     if len(code) == 6 and code[0] in hex_dict and code[1] in hex_dict and code[2] in hex_dict and code[3] in hex_dict and code[4] in hex_dict and code[5] in hex_dict:
             return True
     else:
@@ -44,9 +45,11 @@ def create_plot(x=0, y=0, title='', xlabel='', ylabel='', lcolor='Padrão', grid
 
     if grid == True:
         plt.grid(grid)
+
     plt.title(title, fontsize=18)
     plt.xlabel(xlabel, fontsize=16)
     plt.ylabel(ylabel, fontsize=16)
+
     return plt.gcf() #transforma o plot num figure
 
 def delete_plot(canvas):
