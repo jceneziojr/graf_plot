@@ -12,7 +12,15 @@ import pandas as pd
 #            -Seria legal ter como exportar o gráfico gerado como imagem
 
 list_cores = ('Padrão', 'Azul', 'Verde', 'Vermelho', 'Ciano', 'Magenta', 'Amarelo', 'Preto')
+hex_dict=('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
 
+def check_hex(code): # checa se o código digitado pode ser usado como cor em hexadecimal
+    code = code.casefold()
+    if len(code) == 6 and code[0] in hex_dict and code[1] in hex_dict and code[2] in hex_dict and code[3] in hex_dict and code[4] in hex_dict and code[5] in hex_dict:
+            return True
+    else:
+            return False
+    
 def create_plot(x=0, y=0, title='', xlabel='', ylabel='', lcolor='Padrão', grid=False):
     if lcolor == 'Azul':
         lcolor = 'b'
@@ -50,7 +58,7 @@ column_layout = [
         [sg.Text('Link do arquivo: '), sg.Text(), sg.FileBrowse(button_text='Localizar arquivo', tooltip=' Seu arquivo deve conter cabeçalho! ', key='-file_path-', file_types=(("Text Files", "*.txt"),)), sg.Push(), sg.Button(button_text='Gerar Plot',key='-plot-')], #segundo a documentação, o filetypes TEM que ter aquela virgula após o tipo de arquivo dado
         [sg.Canvas(size=(100, 100), key='-CANVAS-')],
         [sg.Text('Título do gráfico: '), sg.InputText(key='-title-', size=(30,1)), sg.Text('Label eixo x: '), sg.InputText(key='-xlabel-', size=(20, 1)), sg.Text('Label eixo y: '), sg.InputText(key='-ylabel-', size=(20, 1))], # na documentação do sg, o cara sugere que toda key que retornar string esteja entre hífens
-        [sg.Text('Cor do traçado'), sg.Combo(list_cores, key='-color-', default_value='Padrão', readonly=True), sg.Checkbox('Código RGB: #', default=False, key='-color_set-', tooltip=' Ao ativar essa opção, as cores predefinida serão ignoradas! '), sg.InputText(key='-rgbcode-', size=(6, 1)),sg.Text('Grid'), sg.Checkbox('',key='-grid-')],
+        [sg.Text('Cor do traçado'), sg.Combo(list_cores, key='-color-', default_value='Padrão', readonly=True), sg.Checkbox('Código RGB: #', default=False, key='color_set', tooltip=' Ao ativar essa opção, as cores predefinida serão ignoradas! '), sg.InputText(key='-rgbcode-', size=(6, 1), tooltip=' Não é necessário adicionar o caractere # ao código hexadecimal! '),sg.Text('Grid'), sg.Checkbox('',key='-grid-')],
         [sg.Button(button_text='Aplicar mudanças', key='-apply-')],
         [sg.Exit()]
         ]
@@ -73,6 +81,7 @@ canvas = draw_figure(window['-CANVAS-'].TKCanvas, graf)
 
 while True: # loop para processar os eventos e pegar os valores dos inputs
     event, values = window.read()
+
     if event == sg.WIN_CLOSED or event == 'Exit': #Sempre colocar após o window.read()
         break
 
@@ -81,23 +90,54 @@ while True: # loop para processar os eventos e pegar os valores dos inputs
             if graf is not None:
                 delete_plot(canvas)
                 arr = pd.read_csv(values['-file_path-'], sep=' ', header=0, names=['eixox', 'eixoy'])
+                
                 if values['-title-']!='':
                     titulo = values['-title-']
+                else:
+                    titulo = 'Título'
                 if values['-xlabel-']!='':
                     xlabel = values['-xlabel-']
+                else:
+                    xlabel = 'Eixo x'
                 if values['-ylabel-']!='':
                     ylabel = values['-ylabel-']
-                graf = create_plot(arr.eixox, arr.eixoy, titulo, xlabel, ylabel, values['-color-'], values['-grid-'])
+                else:
+                    ylabel = 'Eixo y'
+
+                if values['color_set'] == True: 
+                    if check_hex(values['-rgbcode-']) == True:
+                        rgb_color = '#'+values['-rgbcode-']
+                        graf = create_plot(arr.eixox, arr.eixoy, titulo, xlabel, ylabel, rgb_color.casefold(), values['-grid-'])
+                    else:
+                        sg.popup('Cor Inválida!!!')
+                else:
+                    graf = create_plot(arr.eixox, arr.eixoy, titulo, xlabel, ylabel, values['-color-'], values['-grid-'])
+                
                 canvas = draw_figure(window['-CANVAS-'].TKCanvas, graf)
                 window.refresh()
         except:
             if values['-title-']!='':
                     titulo = values['-title-']
+            else:
+                    titulo = 'Título'
             if values['-xlabel-']!='':
                     xlabel = values['-xlabel-']
+            else:
+                    xlabel = 'Eixo x'
             if values['-ylabel-']!='':
                     ylabel = values['-ylabel-']
-            graf = create_plot(0, 0, titulo, xlabel, ylabel, values['-color-'], values['-grid-'])
+            else:
+                    ylabel = 'Eixo y'
+
+            if values['color_set'] == True: 
+                    if check_hex(values['-rgbcode-']) == True:
+                        rgb_color = '#'+values['-rgbcode-']
+                        graf = create_plot(0, 0, titulo, xlabel, ylabel, rgb_color.casefold(), values['-grid-'])
+                    else:
+                        sg.popup('Cor Inválida!!!')
+            else:
+                graf = create_plot(0, 0, titulo, xlabel, ylabel, values['-color-'], values['-grid-'])
+
             canvas = draw_figure(window['-CANVAS-'].TKCanvas, graf)
             window.refresh()
             sg.popup('Caminho Inválido!!!')
@@ -109,21 +149,51 @@ while True: # loop para processar os eventos e pegar os valores dos inputs
                 arr = pd.read_csv(values['-file_path-'], sep=' ', header=0, names=['eixox', 'eixoy'])
                 if values['-title-']!='':
                     titulo = values['-title-']
+                else:
+                    titulo = 'Título'
                 if values['-xlabel-']!='':
                     xlabel = values['-xlabel-']
+                else:
+                    xlabel = 'Eixo x'
                 if values['-ylabel-']!='':
                     ylabel = values['-ylabel-']
-                graf = create_plot(arr.eixox, arr.eixoy, titulo, xlabel, ylabel, values['-color-'], values['-grid-'])
+                else:
+                    ylabel = 'Eixo y'
+
+                if values['color_set'] == True: 
+                    if check_hex(values['-rgbcode-']) == True:
+                        rgb_color = '#'+values['-rgbcode-']
+                        graf = create_plot(arr.eixox, arr.eixoy, titulo, xlabel, ylabel, rgb_color.casefold(), values['-grid-'])
+                    else:
+                        sg.popup('Cor Inválida!!!')
+                else:
+                    graf = create_plot(arr.eixox, arr.eixoy, titulo, xlabel, ylabel, values['-color-'], values['-grid-'])
+
                 canvas = draw_figure(window['-CANVAS-'].TKCanvas, graf)
                 window.refresh()
         except:
             if values['-title-']!='':
                     titulo = values['-title-']
+            else:
+                    titulo = 'Título'
             if values['-xlabel-']!='':
                     xlabel = values['-xlabel-']
+            else:
+                    xlabel = 'Eixo x'
             if values['-ylabel-']!='':
                     ylabel = values['-ylabel-']
-            graf = create_plot(0, 0, titulo, xlabel, ylabel, values['-color-'], values['-grid-'])
+            else:
+                    ylabel = 'Eixo y'
+                          
+            if values['color_set'] == True: 
+                    if check_hex(values['-rgbcode-']) == True:
+                        rgb_color = '#'+values['-rgbcode-']
+                        graf = create_plot(0, 0, titulo, xlabel, ylabel, rgb_color.casefold(), values['-grid-'])
+                    else:
+                        sg.popup('Cor Inválida!!!')
+            else:
+                graf = create_plot(0, 0, titulo, xlabel, ylabel, values['-color-'], values['-grid-'])
+
             canvas = draw_figure(window['-CANVAS-'].TKCanvas, graf)
             window.refresh()
             sg.popup('Caminho Inválido!!!')
